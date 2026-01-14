@@ -1,0 +1,4 @@
+click
+chromadb
+google-generativeai
+python-dotenv
