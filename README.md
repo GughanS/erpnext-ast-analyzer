@@ -1,61 +1,139 @@
-# ERPNext AST Analyzer 🔍
+# ERPNext Code Intelligence Tool 
 
-A static analysis tool built to assist in the Legacy Modernization of ERPNext. This tool uses Python's ast (Abstract Syntax Tree) module to extract business logic, dependencies, and side-effects from legacy code modules.
+Legacy Modernization Engine for the PearlThoughts AI Internship.
+Transforms legacy Python code (ERPNext) into modern Go microservices using AST Analysis and RAG.
 
-## 🎯 The Problem
+## Overview
 
-Legacy files like sales_invoice.py are massive (2000+ lines) and heavily coupled. Standard LLMs (ChatGPT/Cursor) struggle to identify hidden side-effects like:
+This tool solves the "Black Box" problem of legacy modernization. Instead of treating code as text (like standard LLMs), it treats code as Structure and Graph.
 
-Indirect General Ledger (GL) updates.
+It uses AST Parsing to extract logic, Vector Databases to index dependencies, and Groq (Llama 3) to generate type-safe Go code that preserves business rules.
 
-Stock ledger dependencies.
+## Architecture
 
-Asset depreciation triggers.
+    graph LR
 
-## 🛠️ The Solution
+    A[Legacy Code] -->|AST Parse| B(Code Chunks)
+    B -->|Google Gemini| C(Vector Embeddings)
+    C -->|Store| D[(ChromaDB)]
+    
+    User[Developer] -->|Query| E[CLI Tool]
+    E -->|Search| D
+    E -->|Context + Prompt| F[Groq LLM]
+    F -->|Generate| G[Go Microservice]
 
-Instead of treating code as text (Regex), this tool parses the Abstract Syntax Tree to:
 
-Map the API Surface: Identify all 140+ methods in the class.
+## Key Features
 
-Trace Side Effects: Find exactly where make_gl_entries is called.
+**AST Indexing:** Parses Python functions to understand structure, not just text.
 
-Graph Dependencies: List all external module imports.
+**RAG Engine:** Uses Google Gemini embeddings to perform semantic search across the codebase.
 
-## 🚀 How to Run
+**Fast Inference:** Powered by Groq (Llama 3.3 70B) for near-instant answers.
 
-Clone the repository:
+**Go Migration:** Automatically generates Domain-Driven Design (DDD) compliant Go code.
 
+**Parity Validation:** Includes test drivers to verify the new Go code matches Python behavior.
+
+## Tech Stack
+
+**Language:** Python 3.10+
+
+**Vector DB:** ChromaDB (Local)
+
+**Embeddings:** Google Gemini (text-embedding-004) via REST
+
+**LLM:** Groq (llama-3.3-70b-versatile)
+
+**CLI:** Click
+
+## Setup
+
+### Clone the repository
+
+```
 git clone [https://github.com/YOUR_USERNAME/erpnext-ast-analyzer.git](https://github.com/YOUR_USERNAME/erpnext-ast-analyzer.git)
-cd erpnext-ast-analyzer
 
-
-## Run the analyzer:
-
-### Point it to your local ERPNext file
-`python analyzer.py`
-
-
-## 📊 Sample Output
-
-The tool outputs structured JSON ready for AI Agents:
-```
-{
-  "methods_found": 140,
-  "business_rules": [
-    {
-      "source_method": "on_submit",
-      "calls": "make_gl_entries",
-      "line_number": 473
-    }
-  ]
-}
+cd erpnext-ast-analyzer 
 ```
 
-## 🔗 Project Context
 
-Built for the AI Engineering Internship at PearlThoughts.
+## Install Dependencies
+```
+pip install click chromadb groq python-dotenv requests
+```
 
-Focus: Legacy Modernization (Strangler Fig Pattern)
+## Configure API Keys
+Create a .env file in the root directory:
 
-Target: ERPNext Sales Module
+GOOGLE_API_KEY=AIzaSy...  # From Google AI Studio
+
+GROQ_API_KEY=gsk_...      # From Groq Console
+
+
+## Usage
+
+1. Indexing (The Eyes)
+
+Feed legacy code into the Vector Database.
+
+**Index a single file**
+
+`python cli.py index path/to/sales_invoice.py`
+
+**Index an entire directory (Recursive)**
+
+`python cli.py index ../erpnext/erpnext/controllers/`
+
+
+2. Semantic Search (The Brain)
+
+Find code based on meaning, not just keywords.
+
+`python cli.py search "How is stock ledger updated?"`
+
+
+3. Explain Logic (The Teacher)
+
+Ask the AI to explain complex flows in plain English.
+
+`python cli.py ask "Explain the GL Entry creation logic"`
+
+
+4. Migrate to Go (The Builder)
+
+Generate a Go struct and method for a specific Python function.
+
+`python cli.py migrate "Convert SalesInvoice.on_submit to Go"`
+
+
+## Evidence of Effectiveness
+
+We ran a side-by-side comparison between This Tool and Vanilla ChatGPT.
+
+| Feature | Vanilla ChatGPT | ERPNext Intelligence Tool |
+|---------|-----------------|---------------------------|
+|Context   | Generic Business Rules| Precise Implementation Details
+|Dependency Detection| Missed (update_prevdoc_status)| Detected (Temporal Dependency)
+|Data Integrity Risk|High (Would corrupt data)|Low (Preserves Logic)
+
+`See full evidence in EVIDENCE.md`
+
+## Project Structure
+
+```
+
+erpnext-ast-analyzer/
+├── cli.py              # CLI Entry Point
+├── src/
+│   ├── parser.py       # AST Logic extraction
+│   ├── indexer.py      # Vector DB & Embeddings
+│   ├── search.py       # Semantic Retrieval
+│   └── generator.py    # LLM Integration
+├── data/               # Local Vector Database (Gitignored)
+└── generated/          # Output folder for Go code
+
+```
+
+
+Built by **GUGHAN S** for the **PearlThoughts AI Engineering Internship**.
