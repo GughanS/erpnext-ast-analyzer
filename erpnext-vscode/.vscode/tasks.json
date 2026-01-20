@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "watch",
+			"group": "build",
+			"presentation": {
+				"panel": "shared",
+				"reveal": "never"
+			},
+			"problemMatcher": [
+				"$tsc-watch"
+			],
+			"isBackground": true,
+			"runOptions": {
+				"runOn": "folderOpen"
+			}
+		},
+		{
+			"type": "npm",
+			"script": "pretest",
+			"group": "build",
+			"presentation": {
+				"panel": "shared",
+				"reveal": "never"
+			},
+			"problemMatcher": "$tsc"
+		}
+	]
+}

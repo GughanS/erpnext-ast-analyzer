@@ -1,5 +1,6 @@
 import click
 import os
+import sys
 from src.parser import get_code_chunks
 from src.indexer import CodeIndexer
 from src.search import CodeSearcher
@@ -57,6 +58,7 @@ def ask(query):
     
     print("\n🤖 Groq Analysis:\n")
     print(answer)
+    sys.stdout.flush()
 
 @cli.command()
 @click.argument('query')
@@ -72,6 +74,7 @@ def migrate(query):
     
     print("\n📦 Generated Go Code:\n")
     print(go_code)
+    sys.stdout.flush()
 
 if __name__ == '__main__':
     cli()

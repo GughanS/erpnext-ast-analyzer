@@ -2,10 +2,16 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
-load_dotenv()
+# 🎯 FIX: Use Absolute Path for .env
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(CURRENT_DIR)
+ENV_PATH = os.path.join(PROJECT_ROOT, ".env")
+
+load_dotenv(dotenv_path=ENV_PATH)
 
 class CodeGenerator:
     def __init__(self):
+        # Initialize Groq client with the key from your .env file
         self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
     def answer(self, query, context_results, mode="explain"):
@@ -13,6 +19,9 @@ class CodeGenerator:
         mode: 'explain' (default) or 'migrate'
         """
         # Unpack ChromaDB results
+        if not context_results['documents'][0]:
+            return "No context found. Have you indexed the code?"
+
         documents = context_results['documents'][0]
         metadatas = context_results['metadatas'][0]
         
