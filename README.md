@@ -12,15 +12,16 @@ It uses AST Parsing to extract logic, Vector Databases to index dependencies, an
 ## Architecture
 
     graph LR
-
     A[Legacy Code] -->|AST Parse| B(Code Chunks)
     B -->|Google Gemini| C(Vector Embeddings)
     C -->|Store| D[(ChromaDB)]
     
-    User[Developer] -->|Query| E[CLI Tool]
-    E -->|Search| D
-    E -->|Context + Prompt| F[Groq LLM]
-    F -->|Generate| G[Go Microservice]
+    User[Developer] -->|Query via VS Code| E[Extension (TS)]
+    E -->|Spawn Process| F[Python CLI]
+    F -->|Search| D
+    F -->|Context + Prompt| G[Groq LLM]
+    G -->|Generate| H[Go Microservice]
+
 
 
 ## Key Features
@@ -33,7 +34,7 @@ It uses AST Parsing to extract logic, Vector Databases to index dependencies, an
 
 **Go Migration:** Automatically generates Domain-Driven Design (DDD) compliant Go code.
 
-**Parity Validation:** Includes test drivers to verify the new Go code matches Python behavior.
+**VS Code Integration:** Includes a fully typed TypeScript Extension to ask questions directly in the IDE with real-time streaming.
 
 ## Tech Stack
 
@@ -45,11 +46,13 @@ It uses AST Parsing to extract logic, Vector Databases to index dependencies, an
 
 **LLM:** Groq (llama-3.3-70b-versatile)
 
-**CLI:** Click
+**IDE**: VS Code Extension API
 
 ## Setup
 
 ### Clone the repository
+
+**1. Python Environment**
 
 ```
 git clone [https://github.com/YOUR_USERNAME/erpnext-ast-analyzer.git](https://github.com/YOUR_USERNAME/erpnext-ast-analyzer.git)
@@ -71,36 +74,55 @@ GOOGLE_API_KEY=AIzaSy...  # From Google AI Studio
 GROQ_API_KEY=gsk_...      # From Groq Console
 
 
+**2. VSCODE EXTENSION**
+
+```
+# Navigate to extension folder
+cd erpnext-vscode
+
+# Install dependencies & Compile TypeScript
+npm install
+npm run compile
+
+# Run Debugger
+# Press F5 in VS Code
+
+```
+
+
 ## Usage
 
-1. Indexing (The Eyes)
+**Option A: VS Code Extension (Recommended)**
+
+Open the erpnext-vscode folder.
+
+Press F5 to launch the extension.
+
+Use the Command Palette (Ctrl+Shift+P):
+
+ERPNext: Ask AI Logic -> "How does stock update work?"
+
+ERPNext: Migrate to Go -> "Convert on_submit method"
+
+**Option B: CLI Tool**
+
+**Indexing (The Eyes)**
 
 Feed legacy code into the Vector Database.
 
-**Index a single file**
-
-`python cli.py index path/to/sales_invoice.py`
-
 **Index an entire directory (Recursive)**
 
-`python cli.py index ../erpnext/erpnext/controllers/`
+`python cli.py index "../erpnext/erpnext/controllers/"`
 
 
-2. Semantic Search (The Brain)
-
-Find code based on meaning, not just keywords.
-
-`python cli.py search "How is stock ledger updated?"`
-
-
-3. Explain Logic (The Teacher)
+**Explain Logic (The Teacher)**
 
 Ask the AI to explain complex flows in plain English.
 
 `python cli.py ask "Explain the GL Entry creation logic"`
 
 
-4. Migrate to Go (The Builder)
+**Migrate to Go (The Builder)**
 
 Generate a Go struct and method for a specific Python function.
 
@@ -125,13 +147,14 @@ We ran a side-by-side comparison between This Tool and Vanilla ChatGPT.
 
 erpnext-ast-analyzer/
 ├── cli.py              # CLI Entry Point
-├── src/
-│   ├── parser.py       # AST Logic extraction
-│   ├── indexer.py      # Vector DB & Embeddings
-│   ├── search.py       # Semantic Retrieval
-│   └── generator.py    # LLM Integration
+├── src/                # Core Logic (Parser, Indexer, Search, LLM)
 ├── data/               # Local Vector Database (Gitignored)
-└── generated/          # Output folder for Go code
+├── generated/          # Output folder for Go code
+└── erpnext-vscode/     # VS Code Extension Source
+    ├── src/
+    │   └── extension.ts # TypeScript Extension Logic
+    └── package.json     # Manifest
+
 
 ```
 
