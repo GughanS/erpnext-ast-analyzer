@@ -23,7 +23,7 @@ It uses AST Parsing to extract logic, Vector Databases to index dependencies, an
 
 **Go Migration:** Automatically generates Domain-Driven Design (DDD) compliant Go code.
 
-**Parity Validation:** Includes test drivers to verify the new Go code matches Python behavior.
+**VS Code Integration:** Includes a fully typed TypeScript Extension to ask questions directly in the IDE with real-time streaming.
 
 ## Tech Stack
 
@@ -35,7 +35,7 @@ It uses AST Parsing to extract logic, Vector Databases to index dependencies, an
 
 **LLM:** Groq (llama-3.3-70b-versatile)
 
-**CLI:** Click
+**IDE**: VS Code Extension API
 
 ## Setup
 
@@ -113,9 +113,9 @@ Ask the AI to explain complex flows in plain English.
 
 **Migrate to Go (The Builder)**
 
-Generate a Go struct and method for a specific Python function.
+Generate a Go code for a specific Python file.
 
-`python cli.py migrate "Convert SalesInvoice.on_submit to Go"`
+`python cli.py migrate-file "path/to/file.py"`
 
 
 ## Evidence of Effectiveness
@@ -136,13 +136,14 @@ We ran a side-by-side comparison between This Tool and Vanilla ChatGPT.
 
 erpnext-ast-analyzer/
 ├── cli.py              # CLI Entry Point
-├── src/
-│   ├── parser.py       # AST Logic extraction
-│   ├── indexer.py      # Vector DB & Embeddings
-│   ├── search.py       # Semantic Retrieval
-│   └── generator.py    # LLM Integration
+├── src/                # Core Logic (Parser, Indexer, Search, LLM)
 ├── data/               # Local Vector Database (Gitignored)
-└── generated/          # Output folder for Go code
+├── generated/          # Output folder for Go code
+└── erpnext-vscode/     # VS Code Extension Source
+    ├── src/
+    │   └── extension.ts # TypeScript Extension Logic
+    └── package.json     # Manifest
+
 
 ```
 
