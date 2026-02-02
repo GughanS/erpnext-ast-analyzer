@@ -19,7 +19,7 @@ def get_code_chunks(filename):
         # Strategy B: Low-Precision Regex Parsing (Graceful Degradation)
         return parse_via_regex(source_code, filename)
     except Exception as e:
-        print(f"❌ Critical Error processing {filename}: {e}")
+        print(f" Critical Error processing {filename}: {e}")
         return []
 
 def parse_via_ast(source_code, filename):

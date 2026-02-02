@@ -73,9 +73,9 @@ def run_benchmark():
         
         if found_match:
             score += 1
-            print(f"  ✅ Pass! Found '{found_match}' at Rank {found_rank}")
+            print(f"   Pass! Found '{found_match}' at Rank {found_rank}")
         else:
-            print(f"  ❌ Fail. Expected one of: {test['valid_answers']}")
+            print(f"   Fail. Expected one of: {test['valid_answers']}")
             print(f"     Top 5 Retrieved: {retrieved_functions[:5]}")
 
         print("-" * 40)
@@ -83,7 +83,7 @@ def run_benchmark():
     duration = time.time() - start_time
     accuracy = (score / total) * 100
 
-    print(f"\n{Fore.CYAN}📊 RESULTS:{Style.RESET_ALL}")
+    print(f"\n{Fore.CYAN} RESULTS:{Style.RESET_ALL}")
     print(f"Accuracy: {Fore.GREEN if accuracy >= 75 else Fore.RED}{accuracy:.1f}%{Style.RESET_ALL}")
     print(f"Time Taken: {duration:.2f}s")
 

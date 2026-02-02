@@ -4,18 +4,18 @@ exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const path = require("path");
 const child_process_1 = require("child_process");
-// 🎯 CONFIGURATION: Correct Absolute Paths (Matches your working setup)
+//  CONFIGURATION: Correct Absolute Paths (Matches your working setup)
 // We use absolute paths because relative calculation is unreliable during debugging
 const TOOL_PATH = 'D:\\Internship-Obsidian-Vault\\erpnext-ast-analyzer';
 const PYTHON_CMD = 'D:\\Internship-Obsidian-Vault\\erpnext-ast-analyzer\\.venv\\Scripts\\python.exe';
 function activate(context) {
-    console.log('✅ ERPNext AST Analyzer extension is now active!');
+    console.log(' ERPNext AST Analyzer extension is now active!');
     // Command 1: Index Code
     let indexDisposable = vscode.commands.registerCommand('erpnext-analyzer.index', async () => {
         // Suggest the controllers path as default since it's commonly needed
         const targetPath = await vscode.window.showInputBox({
             placeHolder: 'Enter full path to folder/file',
-            value: 'D:\\Internship-Obsidian-Vault\\erpnext\\erpnext\\controllers',
+            value: 'D:\\Internship-Obsidian-Vault\\erpnext\\erpnext\\accounts',
             prompt: 'Path to Index (e.g. Controllers, Stock, Accounts)'
         });
         if (targetPath) {
@@ -49,10 +49,10 @@ function runPythonTool(command, arg) {
     const outputChannel = vscode.window.createOutputChannel("ERPNext AI");
     outputChannel.clear();
     outputChannel.show(true);
-    outputChannel.appendLine(`🚀 Preparing to run: ${command}`);
-    outputChannel.appendLine(`📂 Working Directory: ${TOOL_PATH}`);
-    outputChannel.appendLine(`🐍 Python Path: ${PYTHON_CMD}`);
-    outputChannel.appendLine(`❓ Arguments: "${arg}"`);
+    outputChannel.appendLine(` Preparing to run: ${command}`);
+    outputChannel.appendLine(` Working Directory: ${TOOL_PATH}`);
+    outputChannel.appendLine(` Python Path: ${PYTHON_CMD}`);
+    outputChannel.appendLine(` Arguments: "${arg}"`);
     outputChannel.appendLine("----------------------------------------\n");
     const cliPath = path.join(TOOL_PATH, 'cli.py');
     // Spawn process with unbuffered output (-u)
@@ -77,15 +77,15 @@ function runPythonTool(command, arg) {
     });
     pythonProcess.on('error', (err) => {
         vscode.window.showErrorMessage(`Execution Failed: ${err.message}`);
-        outputChannel.appendLine(`\n❌ PROCESS ERROR: ${err.message}`);
+        outputChannel.appendLine(`\n PROCESS ERROR: ${err.message}`);
     });
     pythonProcess.on('close', (code) => {
         outputChannel.appendLine(`\n----------------------------------------`);
         if (code === 0) {
-            outputChannel.appendLine(`✅ Process finished successfully.`);
+            outputChannel.appendLine(` Process finished successfully.`);
         }
         else {
-            outputChannel.appendLine(`⚠️ Process exited with code ${code}`);
+            outputChannel.appendLine(` Process exited with code ${code}`);
         }
     });
 }
