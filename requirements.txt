@@ -1,6 +1,5 @@
 click
-chromadb
-google-generativeai
-python-dotenv
-groq
 requests
+python-dotenv
+chromadb
+colorama

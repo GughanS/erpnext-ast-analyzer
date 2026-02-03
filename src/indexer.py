@@ -32,7 +32,7 @@ class CodeIndexer:
                 return response.json()['embedding']['values']
             elif response.status_code == 429:
                 wait = (attempt + 1) * 5
-                print(f"⏳ Embedding Rate Limit. Waiting {wait}s...")
+                print(f"Embedding Rate Limit. Waiting {wait}s...")
                 time.sleep(wait)
             else:
                 raise Exception(f"Google API Error: {response.text}")
@@ -67,7 +67,7 @@ class CodeIndexer:
                 self.generator.migrate_and_save(chunk)
 
         except Exception as e:
-            print(f"❌ Failed to process {chunk['name']}: {e}")
+            print(f"Failed to process {chunk['name']}: {e}")
         
         return result
 
@@ -77,7 +77,7 @@ class CodeIndexer:
         # REDUCED CONCURRENCY: 3 workers is safer for free tier
         MAX_WORKERS = 3 
         
-        print(f"🚀 Processing {len(chunks)} functions with {MAX_WORKERS} threads (Rate Limited)...")
+        print(f"Processing {len(chunks)} functions with {MAX_WORKERS} threads (Rate Limited)...")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             future_to_chunk = {
@@ -95,4 +95,4 @@ class CodeIndexer:
 
         if ids:
             self.collection.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=metadatas)
-            print(f"✅ Successfully indexed {len(ids)} functions!")
+            print(f"Successfully indexed {len(ids)} functions!")

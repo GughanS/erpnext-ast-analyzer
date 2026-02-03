@@ -3,6 +3,7 @@ import os
 import subprocess
 import shutil
 import logging
+import time
 from src.parser import get_code_chunks
 from src.indexer import CodeIndexer
 from src.search import CodeSearcher
@@ -17,7 +18,7 @@ def cli():
     """ERPNext Code Intelligence & Migration Tool"""
     pass
 
-@cli.command()
+@click.command()
 @click.argument('path', type=click.Path(exists=True))
 def index(path):
     """Index a file or folder for search and context-aware queries."""
@@ -52,7 +53,7 @@ def index(path):
                 
     click.echo(click.style("Indexing Complete.", fg="green", bold=True))
 
-@cli.command()
+@click.command()
 @click.argument('query')
 def ask(query):
     """Query the indexed codebase using RAG."""
@@ -61,13 +62,10 @@ def ask(query):
         results = searcher.search(query)
         generator = CodeGenerator()
         
-        # results['documents'] is typically a list of lists from ChromaDB
         docs = results.get('documents', [[]])[0]
         
-        # Check if we have context
         if not docs:
             click.echo(click.style("No relevant context found in index.", fg="yellow"))
-            # Optionally proceed without context or return
             
         answer = generator.explain_logic(query, docs)
             
@@ -76,7 +74,7 @@ def ask(query):
     except Exception as e:
         click.echo(click.style(f"Error querying index: {e}", fg="red"))
 
-@cli.command()
+@click.command()
 @click.argument('file_path', type=click.Path(exists=True))
 @click.option('--out-dir', default='migrated', help='Directory to save migrated code.')
 def migrate_file(file_path, out_dir):
@@ -87,9 +85,16 @@ def migrate_file(file_path, out_dir):
     filename_no_ext = os.path.splitext(os.path.basename(file_path))[0]
     target_dir = os.path.join(out_dir, filename_no_ext)
     
+    # Track logs for report
+    report_logs = []
+    def log(msg):
+        report_logs.append(f"- {msg}")
+    
     # 1. Initial Generation
     click.echo(click.style(f"Generating Go logic for {filename_no_ext}...", fg="cyan"))
-    go_code, test_code = generator.migrate_full_file(file_path)
+    log(f"Started migration for {filename_no_ext}")
+    
+    go_code, test_code = generator.migrate_full_file(file_path_input=file_path)
 
     # Prepare Directory
     if os.path.exists(target_dir):
@@ -98,12 +103,14 @@ def migrate_file(file_path, out_dir):
     
     go_file = os.path.join(target_dir, f"{filename_no_ext}.go")
     test_file = os.path.join(target_dir, f"{filename_no_ext}_test.go")
+    report_file = os.path.join(target_dir, "migration_report.md")
 
     def save_files(g_code, t_code):
         with open(go_file, "w", encoding="utf-8") as f: f.write(g_code)
         with open(test_file, "w", encoding="utf-8") as f: f.write(t_code)
 
     save_files(go_code, test_code)
+    log("Initial code generated and saved.")
     
     click.echo(click.style(f"Files saved in: {target_dir}", fg="green"))
 
@@ -114,51 +121,80 @@ def migrate_file(file_path, out_dir):
 
     # 2. Validation & Self-Healing Loop
     MAX_RETRIES = 3
+    success = False
+    final_output = ""
+
     for attempt in range(MAX_RETRIES):
         click.echo(click.style(f"\nVerification Round {attempt + 1}...", fg="yellow"))
+        log(f"Verification Round {attempt + 1} started.")
         
-        # Capture stderr for compilation errors
         process = subprocess.run(["go", "test", "-v"], cwd=target_dir, text=True, capture_output=True)
         
         if process.returncode == 0:
             click.echo(process.stdout)
             click.echo(click.style("\nSUCCESS: All tests passed!", fg="green", bold=True))
-            return
+            log(f"Round {attempt + 1}: SUCCESS. All tests passed.")
+            final_output = process.stdout + process.stderr
+            success = True
+            break
         
         # Check for compilation errors
         error_log = process.stderr + process.stdout
+        final_output = error_log
         click.echo(click.style(f"Failure detected. Analyzing errors...", fg="red"))
+        log(f"Round {attempt + 1}: FAILED. Errors detected.")
         
-        # Heuristic: If it's a build error, try to fix it
-        # "imported and not used", "declared and not used", "undefined", "expected declaration"
         is_build_error = any(msg in error_log for msg in [
-            "imported and not used", 
-            "declared and not used", 
-            "undefined", 
-            "expected declaration",
-            "cannot find package"
+            "imported and not used", "declared and not used", 
+            "undefined", "expected declaration", "cannot find package",
+            "mock: Unexpected Method Call", "expected 'package'",
+            "syntax error"
         ])
         
         if is_build_error and attempt < MAX_RETRIES - 1:
             click.echo(click.style("Applying Self-Healing Fixes...", fg="magenta"))
+            log(f"Attempting self-healing for Round {attempt + 1} errors.")
             
-            # Decide which file needs fixing based on error log content
-            # Often errors in test files trigger errors in main files, but usually the log specifies the file.
             if f"{filename_no_ext}_test.go" in error_log:
                 test_code = generator.fix_code(test_code, error_log)
+                log("Applied fixes to Test file.")
             else:
-                # Default to fixing implementation if unclear, or both
                 go_code = generator.fix_code(go_code, error_log)
+                log("Applied fixes to Implementation file.")
             
             save_files(go_code, test_code)
             
-            # Re-tidy to ensure deps are correct after code changes
             subprocess.run(["go", "mod", "tidy"], cwd=target_dir, capture_output=True, check=False)
         else:
             click.echo(error_log)
+            log("Max retries reached or error not fixable.")
             break
-            
-    click.echo(click.style("\nFAILED: Max retries exceeded or unfixable error.", fg="red", bold=True))
+    
+    if not success:
+        click.echo(click.style("\nFAILED: Max retries exceeded or unfixable error.", fg="red", bold=True))
+
+    # Generate Report
+    report_content = f"""# Migration Report: {filename_no_ext}
+**Status:** {'SUCCESS' if success else 'FAILED'}
+**Date:** {time.strftime('%Y-%m-%d %H:%M:%S')}
+
+## Migration Log
+{chr(10).join(report_logs)}
+
+## Final Test Output
+```text
+{final_output}
+```
+"""
+    with open(report_file, "w", encoding="utf-8") as f:
+        f.write(report_content)
+    
+    click.echo(click.style(f"\nReport generated: {report_file}", fg="blue"))
+
+# Register commands
+cli.add_command(index)
+cli.add_command(ask)
+cli.add_command(migrate_file)
 
 if __name__ == '__main__':
     cli()
