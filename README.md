@@ -101,7 +101,7 @@ Feed legacy code into the Vector Database.
 
 **Index an entire directory (Recursive)**
 
-`python cli.py index "../erpnext/erpnext/controllers/"`
+`python cli.py index "../erpnext/erpnext/module_name/"`
 
 
 **Explain Logic (The Teacher)**
@@ -115,20 +115,18 @@ Ask the AI to explain complex flows in plain English.
 
 Generate a Go code for a specific Python file.
 
-`python cli.py migrate-file "path/to/file.py"`
+`python cli.py migrate "path/to/file.py"`
+
+**Streamlit UI**
+
+Command to execute streamlit ui :
+`streamlit run app.py`
 
 
-## Evidence of Effectiveness
 
-We ran a side-by-side comparison between This Tool and Vanilla ChatGPT.
 
-| Feature | Vanilla ChatGPT | ERPNext Intelligence Tool |
-|---------|-----------------|---------------------------|
-|Context   | Generic Business Rules| Precise Implementation Details
-|Dependency Detection| Missed (update_prevdoc_status)| Detected (Temporal Dependency)
-|Data Integrity Risk|High (Would corrupt data)|Low (Preserves Logic)
 
-`See full evidence in EVIDENCE.md`
+
 
 ## Project Structure
 
@@ -138,7 +136,8 @@ erpnext-ast-analyzer/
 ├── cli.py              # CLI Entry Point
 ├── src/                # Core Logic (Parser, Indexer, Search, LLM)
 ├── data/               # Local Vector Database (Gitignored)
-├── generated/          # Output folder for Go code
+├── src/generator.py/   # Core script that converts python to go and perform query analysis.
+|__ app.py              # Streamlit UI
 └── erpnext-vscode/     # VS Code Extension Source
     ├── src/
     │   └── extension.ts # TypeScript Extension Logic
